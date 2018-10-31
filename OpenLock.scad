@@ -5,7 +5,7 @@ include <hardware.scad>
 include <polyhedronhelper.scad>
 
 // Changes the Part that you will create
-part = "g"; // [a:Part A,b:Part B, c:Part C,d:Part D,e:Part E,r:Part R,s:Part S,u:Part U,f:Part F,v:Part V,sa:Part SA,sb:Part SB,g:Part G]
+part = "epit"; // [a:Part A,b:Part B, c:Part C,d:Part D,e:Part E,r:Part R,s:Part S,u:Part U,f:Part F,v:Part V,sa:Part SA,sb:Part SB,g:Part G]
 
 // Do you want an array?
 array = "None"; // [None:No Array,Small:Array for a ~4.5"x4.5" printer,FF:Array for a Makerbot/Flashforge style printer,i3:Array for a i3 style printer]
@@ -14,10 +14,10 @@ array = "None"; // [None:No Array,Small:Array for a ~4.5"x4.5" printer,FF:Array 
 layerheight = 0.2; // [0.05:0.025:0.25]
 
 // Change the units settings for an Imperial (1") or Metric (25mm) grid
-Units = "Imperial";  // [Imperial,Metric]
+Units = "TrueTile";  // [Imperial,Metric]
 
 // Do you want to include the built in supports in the model?
-Supports = "Yes";   // [Yes,No]
+Supports = "No";   // [Yes,No]
 
 // Do you want to generate some texture on the part?
 Texture = "None"; // [None,Cobble,Slate,Grass]
@@ -44,92 +44,28 @@ buffer=2;
 print_part();
 //floors();
 
-module print_part(){
-    if (part == "e"){
-        if (Units == "Imperial"){
-            part_e(25.4);
-        } else {
-            part_e(25);
-        }
-    } else if (part == "a"){
-        if (Units == "Imperial"){
-            part_a(25.4);
-        } else {
-            part_a(25);
-        }
-    } else if (part == "b"){
-        if (Units == "Imperial"){
-            part_b(25.4);
-        } else {
-            part_b(25);
-        }
-    } else if (part == "c"){
-        if (Units == "Imperial"){
-            part_c(25.4);
-        } else {
-            part_c(25);
-        }
-    } else if (part == "d"){
-        if (Units == "Imperial"){
-            part_d(25.4);
-        } else {
-            part_d(25);
-        }
-    } else if (part == "f"){
-        if (Units == "Imperial"){
-            part_f(25.4);
-        } else {
-            part_f(25);
-        }
-    } else if (part == "g"){
-        if (Units == "Imperial"){
-            part_g(25.4);
-        } else {
-            part_g(25);
-        }
-    } else if (part == "u"){
-        if (Units == "Imperial"){
-            part_u(25.4);
-        } else {
-            part_u(25);
-        }     
-    } else if (part == "r"){
-        if (Units == "Imperial"){
-            part_r(25.4);
-        } else {
-            part_r(25);
-        }
-     } else if (part == "s"){
-        if (Units == "Imperial"){
-            part_s(25.4);
-        } else {
-            part_s(25);
-        }     
-    } else if (part == "sa"){
-        if (Units == "Imperial"){
-            part_sa(25.4);
-        } else {
-            part_sa(25);
-        }   
-    } else if (part == "sb"){
-        if (Units == "Imperial"){
-            part_sb(25.4);
-        } else {
-            part_sb(25);
-        }  
-    } else if (part == "v"){
-        if (Units == "Imperial"){
-            part_v(25.4);
-        } else {
-            part_v(25);
-        }   
-    }else {
-        if (Units == "Imperial"){
-            part_e(25.4);
-        } else {
-            part_e(25);
-        }
-    }
+function part_size(units = "Imperial") = 
+    (units == "Imperial") ? 25.4 : 
+    (units == "Metric") ? 25 :
+    (units == "TrueTile") ? 31.75 : 25.4;
+    
+module print_part() {
+    size = part_size(Units);
+    if (part == "e") part_e(size);
+    else if (part == "a") part_a(size);
+    else if (part == "b") part_b(size);
+    else if (part == "c") part_c(size);
+    else if (part == "d") part_d(size);
+    else if (part == "f") part_f(size);
+    else if (part == "g") part_g(size);
+    else if (part == "u") part_u(size);
+    else if (part == "r") part_r(size);
+    else if (part == "s") part_s(size);
+    else if (part == "sa") part_sa(size);
+    else if (part == "sb") part_sb(size);
+    else if (part == "v") part_v(size);
+    else if (part == "epit") part_epit(size);
+    else part_e(size);
 }
 
 module part_d(unitwidth=25.4){
@@ -380,6 +316,64 @@ module part_e(unitwidth=25.4){
         }
     }
     
+}
+
+module part_epit(unitwidth=25.4){
+    difference(){
+        union(){
+            difference(){
+                basepiece(unitwidth, 2, 2);
+                for (r = [0:90:360]){
+                    rotate([0,0,r])
+                    translate([0,unitwidth,0])
+                    rotate([0,0,90])
+                    clipcut();
+                }
+            }
+
+            if (Supports == "Yes"){
+                for (r = [0:90:360]){
+                    rotate([0,0,r])
+                    translate([0,unitwidth,0])
+                    rotate([0,0,90])
+                    clipsupport();
+                }
+            }
+        }
+        if (TileMarkers == "Yes"){
+            for (x = [-1:1:1]){
+                translate([x*unitwidth, 0, WallHeight])
+                rotate([90,0,0])
+                cylinder(h = unitwidth*3, r=0.75, $fn=8, center=true);
+            }
+            for (y = [-1:1:1]){
+                translate([0, y*unitwidth, WallHeight])
+                rotate([0,90,0])
+                cylinder(h = unitwidth*3, r=0.75, $fn=8, center=true);
+            }
+        }
+        for (x = [-0.25:0.5:0.25], y = [-0.25:0.5:0.25]){
+            translate([x*unitwidth,y*unitwidth,0])
+            cube([unitwidth/2-3, unitwidth/2-3, 1],center=true);
+        }
+        for (x = [-1,1]){
+            translate([x*unitwidth, 0, 0])
+            rotate([90,0,0])
+            rotate([0,0,45])
+            cube([1,1,unitwidth*5],center=true);
+        }
+        for (y = [-1,1]){
+            translate([0,y*unitwidth, 0])
+            rotate([0,90,0])
+            rotate([0,0,45])
+            cube([1,1,unitwidth*5],center=true);
+        }
+        translate([0,0,WallHeight/2]) cylinder(h=WallHeight, r=min(0.7*unitwidth,0.7*unitwidth), center=true);    
+    }
+    difference() {
+        translate([0,0,WallHeight/2]) cylinder(h=WallHeight, r=min(0.8*unitwidth,0.8*unitwidth), center=true);    
+        translate([0,0,WallHeight/2]) cylinder(h=WallHeight, r=min(0.7*unitwidth,0.7*unitwidth), center=true);    
+    }
 }
 
 module part_f(unitwidth=25.4){
@@ -1040,7 +1034,15 @@ module basepiece(unitwidth, xmult, ymult){
             translate([0,0,(WallHeight)/2])
             cube([unitwidth*xmult,unitwidth*ymult,WallHeight],center=true);
         }
-    } else {
+    } else if (Texture == "Image") {
+        union(){
+            translate([0,0,WallHeight])
+                scale([unitwidth*xmult/200,unitwidth*ymult/200,3/100])
+                surface(file="grass.png", center=true, invert=false, convexity=4);
+            translate([0,0,(WallHeight)/2])
+            cube([unitwidth*xmult,unitwidth*ymult,WallHeight],center=true);
+        }
+    }else {
         translate([0,0,(WallHeight)/2])
         cube([unitwidth*xmult,unitwidth*ymult,WallHeight],center=true);
     }
